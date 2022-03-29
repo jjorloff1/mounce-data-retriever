@@ -17,7 +17,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
   end
 
   it "Loads word pages" do
-    urls = JSON.parse(File.read("spec/url_mappings_3.json"))
+    urls = JSON.parse(File.read("spec/url_mappings_4.json"))
     # expect(urls.keys.length).to be(3)
 
     data = {}
