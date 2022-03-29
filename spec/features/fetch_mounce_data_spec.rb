@@ -17,19 +17,20 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
   end
 
   it "Loads word pages" do
-    urls = JSON.parse(File.read("spec/url_mappings.json"))
+    urls = JSON.parse(File.read("spec/url_mappings_3.json"))
     # expect(urls.keys.length).to be(3)
 
     data = {}
     tabbed_data = []
-    errors = {}
+    # errors = {}
     urls.each do |key, value|
       visit value
 
       expect(page).to have_content "Dictionary"
 
       unless page.has_content?(key.to_s) then
-        errors[key] = value
+        # errors[key] = value
+        puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
         next
       end
 
@@ -37,23 +38,25 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
       item = parse_line(content).to_h
 
       if item.empty? then
-        errors[key] = value
+        # errors[key] = value
+        puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
         next
       end
 
-      data[key] = item
-      tabbed_data.push(item.values.join("\t"))
+      item[:key] = key
+      item[:url] = value
+      puts item.to_json
+      # data[key] = item
+      # tabbed_data.push(item.values.join("\t"))
     rescue
-      errors.push(key)
-      puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
+      # errors[key] = value
+      puts "Unable to Parse #{key} on #{value} - Content: #{content}\n"
     ensure
       sleep(0.5) # don't want to slam the server
     end
 
-    puts data
-
-    File.write('errors.json', JSON.dump(errors))
-    File.write('dictionary.json', JSON.dump(data).gsub(" ", " "))
-    File.write('dictionary.tsv', tabbed_data.join("\n").gsub(" ", " "))
+    # File.write('errors_3.json', JSON.dump(errors))
+    # File.write('dictionary_3.json', JSON.dump(data).gsub(" ", " "))
+    # File.write('dictionary_3.tsv', tabbed_data.join("\n").gsub(" ", " "))
   end
 end
