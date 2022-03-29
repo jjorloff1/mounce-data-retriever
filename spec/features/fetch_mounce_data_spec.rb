@@ -16,7 +16,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
     expect(page).to have_content 'Ἑβραῖος, ου, ὁ'
   end
 
-  it "Loads letter pages" do
+  it "Loads word pages" do
     urls = JSON.parse(File.read("spec/url_mappings.json"))
     # expect(urls.keys.length).to be(3)
 
@@ -26,13 +26,18 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
     urls.each do |key, value|
       visit value
 
-      expect(page).to have_content key.to_s
+      expect(page).to have_content "Dictionary"
+
+      unless page.has_content?(key.to_s) then
+        errors[key] = value
+        next
+      end
 
       content = find("div.node-content").text.gsub("\t"," ")
       item = parse_line(content).to_h
 
       if item.empty? then
-        errors[key] = value if item.empty?
+        errors[key] = value
         next
       end
 
