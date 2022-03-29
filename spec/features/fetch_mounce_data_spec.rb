@@ -26,9 +26,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
     urls.each do |key, value|
       visit value
 
-      expect(page).to have_content "Dictionary"
-
-      unless page.has_content?(key.to_s) then
+      unless page.has_content?("Dictionary") and page.has_content?(key.to_s) then
         # errors[key] = value
         puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
         next
