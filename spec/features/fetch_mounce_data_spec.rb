@@ -5,7 +5,7 @@
 # distribute that data, or you will be in violation of his terms and conditions.
 
 Entry = Struct.new(:lexical_form, :grk_translit, :simple_translit, :principal_parts, :strongs, :gk_number, :frequency, :mbg_tag, :gloss, :definition)
-DATA_FORMAT = /Dictionary: \n(?<lexical_form>.+?)\nGreek transliteration: \n(?<grk_translit>.+?)\nSimplified transliteration: \n(?<simple_translit>.+?)\n(?:Principal Parts: \n((?<principal_parts>.+?)\n)?)?Numbers\nStrong's number: \n(?<strongs>\d+)\nGK Number: \n(?<gk_number>\d+)\n.+?\nFrequency in New Testament: \n(?<frequency>\d+)\n(Morphology of Biblical Greek Tag: \n(?<mbg_tag>.+?)\n)?Gloss: \n(?<gloss>.+?)\nDefinition: \n?(?<definition>.+)?/
+DATA_FORMAT = /Dictionary: \n(?<lexical_form>.+?)\nGreek transliteration: \n(?<grk_translit>.+?)\nSimplified transliteration: \n(?<simple_translit>.+?)\n(?:Principal Parts: \n((?<principal_parts>.+?)\n)?)?Numbers\nStrong's number: \n(?<strongs>\d+)\nGK Number: \n(?<gk_number>\d+)\n.+?\nFrequency in New Testament: \n((?<frequency>\d+)\n)?(Morphology of Biblical Greek Tag: \n((?<mbg_tag>.+?)\n)?)?Gloss: \n(?<gloss>.+?)(\nDefinition: \n?(?<definition>.+)?)?/
 
 def parse_line(line)
   line.match(DATA_FORMAT) { |m| Entry.new(*m.captures) }
@@ -25,7 +25,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
   # spec/url_mappings.json then run from the command line and use "rspec | tee -a 'logfilename.log'"
   # Then you can take the output of that file and build a word_data.json file which you
   # can feed into the next test.
-  it "Fetch word data and log to console" do
+  xit "Fetch word data and log to console" do
     urls = JSON.parse(File.read("spec/url_mappings.json"))
 
     urls.each do |key, value|
@@ -78,7 +78,6 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
       tabbed_data.push(word.values.join("\t"))
     end
 
-    # File.write('errors_3.json', JSON.dump(errors))
     File.write('dictionary.json', JSON.dump(data).gsub(" ", " "))
     File.write('dictionary.tsv', tabbed_data.join("\n").gsub(" ", " "))
   end
@@ -86,7 +85,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
   # Compares a dictionary.json with the url_masterlist to see which words did not
   # get retrieved.  It will produce an errors.json which can then feed back into
   # step one once you have resolved the errors.
-  xit "Generates list of errors" do
+  it "Generates list of errors" do
     all_words = JSON.parse(File.read("spec/mounce_url_masterlist.json"))
     completed_words = JSON.parse(File.read("spec/dictionary.json"))
 
