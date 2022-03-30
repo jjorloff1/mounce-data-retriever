@@ -5,7 +5,7 @@
 # distribute that data, or you will be in violation of his terms and conditions.
 
 Entry = Struct.new(:lexical_form, :grk_translit, :simple_translit, :principal_parts, :strongs, :gk_number, :frequency, :mbg_tag, :gloss, :definition)
-DATA_FORMAT = /Dictionary: \n(?<lexical_form>.+?)\nGreek transliteration: \n(?<grk_translit>.+?)\nSimplified transliteration: \n(?<simple_translit>.+?)\n(?:Principal Parts: \n((?<principal_parts>.+?)\n)?)?Numbers\nStrong's number: \n(?<strongs>\d+)\nGK Number: \n(?<gk_number>\d+)\n.+?\nFrequency in New Testament: \n(?<frequency>\d+)\nMorphology of Biblical Greek Tag: \n(?<mbg_tag>.+?)\nGloss: \n(?<gloss>.+?)\nDefinition: \n?(?<definition>.+)?/
+DATA_FORMAT = /Dictionary: \n(?<lexical_form>.+?)\nGreek transliteration: \n(?<grk_translit>.+?)\nSimplified transliteration: \n(?<simple_translit>.+?)\n(?:Principal Parts: \n((?<principal_parts>.+?)\n)?)?Numbers\nStrong's number: \n(?<strongs>\d+)\nGK Number: \n(?<gk_number>\d+)\n.+?\nFrequency in New Testament: \n(?<frequency>\d+)\n(Morphology of Biblical Greek Tag: \n(?<mbg_tag>.+?)\n)?Gloss: \n(?<gloss>.+?)\nDefinition: \n?(?<definition>.+)?/
 
 def parse_line(line)
   line.match(DATA_FORMAT) { |m| Entry.new(*m.captures) }
@@ -29,23 +29,33 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
     urls = JSON.parse(File.read("spec/url_mappings.json"))
 
     urls.each do |key, value|
-      visit value
+      url = value
+      visit url
 
       unless page.has_content?("Dictionary") and page.has_content?(key.to_s) then
-        puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
-        next
+        (0..3).each { |i|
+          visit "#{value}-#{i}"
+          if page.has_content?("Dictionary") and page.has_content?(key.to_s) then
+            url = page.current_url
+            break
+          end
+        }
+        unless page.has_content?("Dictionary") and page.has_content?(key.to_s)
+          puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
+          next
+        end
       end
 
       content = find("div.node-content").text.gsub("\t"," ")
       item = parse_line(content).to_h
 
       if item.empty? then
-        puts "Unable to Parse #{key} on #{value} - Content:#{content}\n"
+        puts "Unable to Parse #{key} on #{url} - Content:#{content}\n"
         next
       end
 
       item[:key] = key
-      item[:url] = value
+      item[:url] = url
       puts item.to_json
     rescue
       puts "Unable to Parse #{key} on #{value} - Content: #{content}\n"
@@ -64,7 +74,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
     data = {}
     tabbed_data = []
     words.each do |word|
-      data[word[:key]] = word
+      data[word["key"]] = word
       tabbed_data.push(word.values.join("\t"))
     end
 
