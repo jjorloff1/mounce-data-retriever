@@ -3,9 +3,13 @@
 # For that reason, the only data file I include is a mapping of greek words to their
 # definition page.  These scripts will turn that list into data, but you must not
 # distribute that data, or you will be in violation of his terms and conditions.
+# TODO: when parsing data find any characters that are followed by an & and give them a diaeresis
+# TODO: replace ' <Ε&ορ</Ε&' with ',' and ', <Ε&γεν.</Ε& οῦς' and ',<Ε& γεν., </Ε&ονος' (genitives) with nothing
+#       'ὁ ορ ἡ, <Ε&γεν.</Ε& ιν ιος' with 'ὁ, ἡ'
+# TODO: looks like some words get their MBG number set into their Principal Parts (It is this way on the site. i.e. πιθός, πορφύρεος)
 
 Entry = Struct.new(:lexical_form, :grk_translit, :simple_translit, :principal_parts, :strongs, :gk_number, :frequency, :mbg_tag, :gloss, :definition)
-DATA_FORMAT = /Dictionary: \n(?<lexical_form>.+?)\nGreek transliteration: \n(?<grk_translit>.+?)\nSimplified transliteration: \n(?<simple_translit>.+?)\n(?:Principal Parts: \n((?<principal_parts>.+?)\n)?)?Numbers\nStrong's number: \n(?<strongs>\d+)\nGK Number: \n(?<gk_number>\d+)\n.+?\nFrequency in New Testament: \n((?<frequency>\d+)\n)?(Morphology of Biblical Greek Tag: \n((?<mbg_tag>.+?)\n)?)?Gloss: \n(?<gloss>.+?)(\nDefinition: \n?(?<definition>.+)?)?/
+DATA_FORMAT = /Dictionary: \n(?<lexical_form>.+?)\nGreek transliteration: \n(?<grk_translit>.+?)\nSimplified transliteration: \n(?<simple_translit>.+?)\n(?:Principal Parts: \n((?<principal_parts>.+?)\n)?)?Numbers\nStrong's number: \n((?<strongs>\d+)\n)?GK Number: \n(?<gk_number>\d+)\n.+?\nFrequency in New Testament: \n((?<frequency>\d+)\n)?(Morphology of Biblical Greek Tag: \n((?<mbg_tag>.+?)\n)?)?Gloss: \n(?<gloss>.+)(\nDefinition: \n?(?<definition>.+)?)?/
 
 def parse_line(line)
   line.match(DATA_FORMAT) { |m| Entry.new(*m.captures) }
@@ -85,7 +89,7 @@ RSpec.describe "Fetch Mounce Data", type: :feature do
   # Compares a dictionary.json with the url_masterlist to see which words did not
   # get retrieved.  It will produce an errors.json which can then feed back into
   # step one once you have resolved the errors.
-  it "Generates list of errors" do
+  xit "Generates list of errors" do
     all_words = JSON.parse(File.read("spec/mounce_url_masterlist.json"))
     completed_words = JSON.parse(File.read("spec/dictionary.json"))
 
